@@ -11,19 +11,20 @@ and a bigger motor driver is used. An external power source is also recommended.
 #include <Wire.h>
 #include "RTClib.h"
 
+#define plantNum 1   //Total number of plants (edit as needed)
+#define pumpNum 1   //Total number of pumps (edit as needed)
+
 #define buttonPin 2  //Interrupt 0 is on pin 2
-#define plantNum 1   //Total number of plants
 #define lowLED 13    //Pin for red LED
 #define highLED 12   //Pin for green LED
-#define pump1 5      //Pin for pump 1
  
 RTC_DS1307 RTC;
                 //BS,E,D4,D5,D6,D7
 LiquidCrystal lcd(6, 7, 8, 9,10,11);
 int pNum;  //Initialize global plant number variable for loops and functions
 int moisture; //Initialize moisture variable
-char* plantNames[] = {"Snake Plant."};
-int pump[3];  //Initialize pump array
+char* plantNames[] = {"Snake Plant."}; //Edit as needed
+int pump[4] = {0,1,3,4};  //Initialize pump pin array
 
 void setup () {
     Serial.begin(9600);
@@ -31,7 +32,12 @@ void setup () {
     RTC.begin();         //Start the clock
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
     pinMode(highLED, OUTPUT); //Plant1 good moisture alert (Green)
-    pinMode(pump1, OUTPUT); //Motor pin
+    for(int i=0;i<pumpNum;i++){
+      String startIt = "Pump "+i;
+      String finishIt = startIt + " on pin "+pump[i];
+      Serial.println(finishIt);
+      pinMode(pump[i], OUTPUT); //Motor pin
+    }
     pinMode(buttonPin, INPUT);
     lcd.begin(16,2); //Begin LCD Display
     attachInterrupt(0, executeAll, RISING); //Button interrupt on pin 2
