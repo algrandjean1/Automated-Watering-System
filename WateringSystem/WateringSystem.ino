@@ -1,9 +1,10 @@
 /* Title: AUTOMATED WATERING SYSTEM
    Engineer: Alain Grandjean
    Date Created: 1-10-15
-   Version: 2   
+   Date Last Modified: 1-11-15
+   Version: 3   
 
-Description: Watering system for 1 - 4 plant(s). 
+Description: Watering system for 1 - 3 motor(s).
 Scalable to larger size if Arduino with more pins and better processor
 and a bigger motor driver is used. An external power source is also recommended.
 */
@@ -12,24 +13,29 @@ and a bigger motor driver is used. An external power source is also recommended.
 #include "RTClib.h"
 
 #define plantNum 1   //Total number of plants (edit as needed)
-#define pumpNum 1   //Total number of pumps (edit as needed)
+#define pumpNum 1   //Total number of pumps (up to 3)
 
 #define buttonPin 2  //Interrupt 0 is on pin 2
 #define lowLED 13    //Pin for red LED
 #define highLED 12   //Pin for green LED
+#define lowWaterLED 11 //Pin for red low water LED
+#define waterLevel 4 //Pin for water level sensor probe
  
 RTC_DS1307 RTC;
                 //BS,E,D4,D5,D6,D7
-LiquidCrystal lcd(6, 7, 8, 9,10,11);
+LiquidCrystal lcd(5, 6, 7, 8, 9,10);
 int pNum;  //Initialize global plant number variable for loops and functions
 int moisture; //Initialize moisture variable
 char* plantNames[] = {"Snake Plant."}; //Edit as needed
-int pump[4] = {0,1,3,4};  //Initialize pump pin array
+int pump[4] = {0,1,3};  //Initialize pump pin array
+boolean isEmpty = false; //No water cutoff variable
 
 void setup () {
     Serial.begin(9600);
     Wire.begin();
     RTC.begin();         //Start the clock
+    pinMode(waterLevel, INPUT); //Water level probe
+    pinMode(lowWaterLED, OUTPUT); //LED warning of low water
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
     pinMode(highLED, OUTPUT); //Plant1 good moisture alert (Green)
     for(int i=0;i<pumpNum;i++){
@@ -50,7 +56,31 @@ void setup () {
 }
  
 void loop () {
-  checkTime();
+  checkLevel();
+}
+
+void checkLevel(){
+  if(digitalRead(waterLevel == LOW)){  //If there is no more signal to the probe
+      isEmpty = true;    //Activate pump cutoff variable
+      emptyNotify();    //Print message and blink LED
+  }
+  else {
+   isEmpty = false;    //Deactivate pump cutoff variable
+   checkTime();
+  }
+}
+
+void emptyNotify(){      //Notify when water level is low
+  lcd.setCursor(0,0);
+  lcd.print("Water Level Low.");
+  lcd.setCursor(0,1);
+  lcd.print("Replace At Once.");
+     for(int i=0; i<5; i++){
+        digitalWrite(lowWaterLED, HIGH);
+        delay(500);
+        digitalWrite(lowWaterLED, LOW);
+        delay(500);
+     }
 }
 
 void checkTime(){
@@ -69,12 +99,12 @@ void checkTime(){
     Serial.print(now.second(), DEC);
     Serial.println();                // Print out the time to serial monitor
     
-    if ((now.hour() == 8) && (now.minute() == 0)){ // First check at 08:00 A.M.
-        executeAll();
-    }
-    if ((now.hour() == 19) && (now.minute() == 0)){ // First check at 07:00 P.M.
-        executeAll();
-    }
+      if ((now.hour() == 8) && (now.minute() == 0)){ // First check at 08:00 A.M.
+          executeAll();
+      }
+      if ((now.hour() == 19) && (now.minute() == 0)){ // First check at 07:00 P.M.
+          executeAll();
+      }
 }
 
 int checkMoisture(int pNum){
@@ -131,8 +161,10 @@ void moistEval(int pNum){
 }
 
 void executeAll(){         //Perform all tasks
-  for(pNum=0;pNum<(plantNum-1);pNum++){
-     printLCD(pNum);      //Print plant name and moisture level
-     moistEval(pNum);     //Pump water based on moisture
+  while(isEmpty != true){ //While there is water in the tank
+    for(pNum=0;pNum<(plantNum-1);pNum++){
+       printLCD(pNum);      //Print plant name and moisture level
+       moistEval(pNum);     //Pump water based on moisture
+    }
   }
 }
