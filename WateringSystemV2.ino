@@ -23,6 +23,7 @@ LiquidCrystal lcd(6, 7, 8, 9,10,11);
 int pNum;  //Initialize global plant number variable for loops and functions
 int moisture; //Initialize moisture variable
 char* plantNames[] = {"Snake Plant."};
+int pump[3];  //Initialize pump array
 
 void setup () {
     Serial.begin(9600);
@@ -114,18 +115,17 @@ void moistEval(int pNum){
   moisture = checkMoisture(pNum);
     if(moisture < 50){
           lowAlert();                //Blink low light
-          digitalWrite(pump1, HIGH); //Turn on pump
+          digitalWrite(pump[pNum], HIGH); //Turn on pump[pNum]
           moistEval(pNum);       //Check the soil moisture
     } 
     else {
           highAlert();
-          digitalWrite(pump1, LOW);  //Turn off pump
+          digitalWrite(pump[pNum], LOW);  //Turn off pump[pNum]
     }
 }
 
 void executeAll(){         //Perform all tasks
   for(pNum=0;pNum<(plantNum-1);pNum++){
-    // checkMoisture(pNum); //Check moisture of plan #pNum
      printLCD(pNum);      //Print plant name and moisture level
      moistEval(pNum);     //Pump water based on moisture
   }
