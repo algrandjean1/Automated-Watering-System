@@ -16,24 +16,25 @@ and a bigger motor driver is used. An external power source is also recommended.
 #define pumpNum 1   //Total number of pumps (up to 3)
 
 #define buttonPin 2  //Interrupt 0 is on pin 2
-#define lowLED 13    //Pin for red LED
-#define highLED 12   //Pin for green LED
-#define lowWaterLED 11 //Pin for red low water LED
-#define waterLevel 4 //Pin for water level sensor probe
+#define lowLED 7    //Pin for red LED
+#define highLED 8   //Pin for green LED
+#define lowWaterLED 9 //Pin for red low water LED
+#define waterLevel 13 //Pin for water level sensor probe
  
 RTC_DS1307 RTC;
                 //BS,E,D4,D5,D6,D7
-LiquidCrystal lcd(5, 6, 7, 8, 9,10);
+LiquidCrystal lcd(3, 4, 5, 6,11,12);
 int pNum;  //Initialize global plant number variable for loops and functions
 int moisture; //Initialize moisture variable
 char* plantNames[] = {"Snake Plant."}; //Edit as needed
-int pump[4] = {0,1,3};  //Initialize pump pin array
+int pump[4] = {0,1,10};  //Initialize pump pin array
 boolean isEmpty = false; //No water cutoff variable
 
 void setup () {
     Serial.begin(9600);
     Wire.begin();
     RTC.begin();         //Start the clock
+    attachInterrupt(0, executeAll, HIGH); //Button interrupt on pin 10
     pinMode(waterLevel, INPUT); //Water level probe
     pinMode(lowWaterLED, OUTPUT); //LED warning of low water
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
@@ -46,7 +47,6 @@ void setup () {
     }
     pinMode(buttonPin, INPUT);
     lcd.begin(16,2); //Begin LCD Display
-    attachInterrupt(0, executeAll, RISING); //Button interrupt on pin 2
     
     if (! RTC.isrunning()) {
       Serial.println("RTC is NOT running!");
