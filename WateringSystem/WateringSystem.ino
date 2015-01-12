@@ -16,7 +16,7 @@ and a bigger motor driver is used. An external power source is also recommended.
 #define pumpNum 1   //Total number of pumps (up to 3)
 
 #define buttonPin 2  //Interrupt 0 is on pin 2
-#define lowLED 7    //Pin for red LED
+#define lowLED 7    //Pin for yellow LED
 #define highLED 8   //Pin for green LED
 #define lowWaterLED 9 //Pin for red low water LED
 #define waterLevel 13 //Pin for water level sensor probe
