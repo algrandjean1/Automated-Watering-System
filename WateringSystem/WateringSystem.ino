@@ -33,7 +33,7 @@ void setup () {
     Serial.begin(9600);
     Wire.begin();
     RTC.begin();         //Start the clock
-    attachInterrupt(0, executeAll, RISING); //Button interrupt on pin 2
+    attachInterrupt(0, checkLevel, RISING); //Button interrupt on pin 2
     pinMode(waterLevel, INPUT); //Water level probe
     pinMode(lowWaterLED, OUTPUT); //LED warning of low water
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
