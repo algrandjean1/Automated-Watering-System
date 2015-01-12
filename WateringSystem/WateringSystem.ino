@@ -15,7 +15,6 @@ and a bigger motor driver is used. An external power source is also recommended.
 #define plantNum 1   //Total number of plants (edit as needed)
 #define pumpNum 1   //Total number of pumps (up to 3)
 
-#define buttonPin 2  //Interrupt 0 is on pin 2
 #define lowLED 7    //Pin for yellow LED
 #define highLED 8   //Pin for green LED
 #define lowWaterLED 9 //Pin for red low water LED
@@ -34,7 +33,7 @@ void setup () {
     Serial.begin(9600);
     Wire.begin();
     RTC.begin();         //Start the clock
-    attachInterrupt(0, executeAll, HIGH); //Button interrupt on pin 10
+    attachInterrupt(0, executeAll, RISING); //Button interrupt on pin 2
     pinMode(waterLevel, INPUT); //Water level probe
     pinMode(lowWaterLED, OUTPUT); //LED warning of low water
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
@@ -45,7 +44,6 @@ void setup () {
       Serial.println(finishIt);
       pinMode(pump[i], OUTPUT); //Motor pin
     }
-    pinMode(buttonPin, INPUT);
     lcd.begin(16,2); //Begin LCD Display
     
     if (! RTC.isrunning()) {
