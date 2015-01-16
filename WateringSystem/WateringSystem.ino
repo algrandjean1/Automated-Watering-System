@@ -1,7 +1,7 @@
 /* Title: AUTOMATED WATERING SYSTEM
    Engineer: Alain Grandjean
    Date Created: 1-10-15
-   Date Last Modified: 1-11-15
+   Date Last Modified: 1-15-15
    Version: 3   
 
 Description: Watering system for 1 - 3 motor(s).
@@ -28,12 +28,13 @@ int moisture; //Initialize moisture variable
 char* plantNames[] = {"Snake Plant."}; //Edit as needed
 int pump[4] = {0,1,10};  //Initialize pump pin array
 boolean isEmpty = false; //No water cutoff variable
+volatile int interruptIt = 0; //Interrupt variable
 
 void setup () {
     Serial.begin(9600);
     Wire.begin();
     RTC.begin();         //Start the clock
-    attachInterrupt(0, checkLevel, RISING); //Button interrupt on pin 2
+    attachInterrupt(0, interruptMe, RISING); //Button interrupt on pin 2
     pinMode(waterLevel, INPUT); //Water level probe
     pinMode(lowWaterLED, OUTPUT); //LED warning of low water
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
@@ -159,10 +160,15 @@ void moistEval(int pNum){
 }
 
 void executeAll(){         //Perform all tasks
-  while(isEmpty != true){ //While there is water in the tank
-    for(pNum=0;pNum<(plantNum-1);pNum++){
-       printLCD(pNum);      //Print plant name and moisture level
-       moistEval(pNum);     //Pump water based on moisture
-    }
+  while((isEmpty != true) && (interruptIt == (0 || 1))){ //While there is water in the tank
+      for(pNum=0;pNum<(plantNum-1);pNum++){
+         printLCD(pNum);      //Print plant name and moisture level
+         moistEval(pNum);     //Pump water based on moisture
+      }
+    interruptIt = 0;  //Deactivate the interrupt variable
   }
+}
+
+void interruptMe(){
+ interruptIt = 1; //Set interrupt variable to 1. This will execute all
 }
