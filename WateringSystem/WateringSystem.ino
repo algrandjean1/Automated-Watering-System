@@ -15,18 +15,18 @@ and a bigger motor driver is used. An external power source is also recommended.
 #define plantNum 1   //Total number of plants (edit as needed)
 #define pumpNum 1   //Total number of pumps (up to 3)
 
-#define lowLED 7    //Pin for yellow LED
-#define highLED 8   //Pin for green LED
-#define lowWaterLED 9 //Pin for red low water LED
-#define waterLevel 13 //Pin for water level sensor probe
+#define lowLED 5    //Pin for yellow LED
+#define highLED 6   //Pin for green LED
+#define lowWaterLED 4  //Pin for red low water LED
+#define waterLevel 3 //Pin for water level sensor probe
  
 RTC_DS1307 RTC;
-                //BS,E,D4,D5,D6,D7
-LiquidCrystal lcd(3, 4, 5, 6,11,12);
+                //BS,E, D4,D5, D6, D7
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 int pNum;  //Initialize global plant number variable for loops and functions
 int moisture; //Initialize moisture variable
 char* plantNames[] = {"Snake Plant."}; //Edit as needed
-int pump[4] = {0,1,10};  //Initialize pump pin array
+int pump[4] = {13,1,0};  //Initialize pump pin array
 boolean isEmpty = false; //No water cutoff variable
 volatile int interruptIt = 0; //Interrupt variable
 
@@ -36,11 +36,11 @@ void setup () {
     RTC.begin();         //Start the clock
     attachInterrupt(0, interruptMe, RISING); //Button interrupt on pin 2
     pinMode(waterLevel, INPUT); //Water level probe
-    pinMode(lowWaterLED, OUTPUT); //LED warning of low water
+    pinMode(lowWaterLED, OUTPUT); //LED warning of low water 
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
     pinMode(highLED, OUTPUT); //Plant1 good moisture alert (Green)
     for(int i=0;i<pumpNum;i++){
-      String startIt = "Pump "+i;
+      String startIt = "Pump "+ i;
       String finishIt = startIt + " on pin "+pump[i];
       Serial.println(finishIt);
       pinMode(pump[i], OUTPUT); //Motor pin
@@ -55,17 +55,26 @@ void setup () {
 }
  
 void loop () {
-  checkLevel();
+    checkLevel();
 }
 
 void checkLevel(){
-  if(digitalRead(waterLevel == LOW)){  //If there is no more signal to the probe
+  if(digitalRead(waterLevel) == LOW){  //If there is no more signal to the probe
       isEmpty = true;    //Activate pump cutoff variable
+      interruptIt = 0;  //In case interrupt was triggered
       emptyNotify();    //Print message and blink LED
   }
   else {
    isEmpty = false;    //Deactivate pump cutoff variable
-   checkTime();
+   lcd.clear();
+   if(interruptIt == 1){
+     delay(500);
+     executeAll();
+     interruptIt = 0;
+   }
+   else {
+     checkTime();
+   }
   }
 }
 
@@ -126,6 +135,7 @@ void printLCD(int pNum){
     lcd.print("Moisture:    %.");
     lcd.setCursor(10,1); //Second line of LCD
     lcd.print(moisture); //Print moisture level to LCD display
+    delay(1000);
 }
 
 void lowAlert(){            //Blink the red light
@@ -160,14 +170,21 @@ void moistEval(int pNum){
 }
 
 void executeAll(){         //Perform all tasks
-  while((isEmpty != true) && (interruptIt == (0 || 1))){ //While there is water in the tank
-      for(pNum=0;pNum<(plantNum-1);pNum++){
+  if(isEmpty == false){ //While there is water in the tank
+      for(pNum=0;pNum<(plantNum);pNum++){
          printLCD(pNum);      //Print plant name and moisture level
          moistEval(pNum);     //Pump water based on moisture
+         delay(1000);
+         lcd.clear();
+         
       }
     interruptIt = 0;  //Deactivate the interrupt variable
   }
+  else {
+    emptyNotify();
+  }
 }
+
 
 void interruptMe(){
  interruptIt = 1; //Set interrupt variable to 1. This will execute all
