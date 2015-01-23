@@ -29,6 +29,8 @@ char* plantNames[] = {"Snake Plant."}; //Edit as needed
 int pump[4] = {13,1,0};  //Initialize pump pin array
 boolean isEmpty = false; //No water cutoff variable
 volatile int interruptIt = 0; //Interrupt variable
+int sensorRead;
+
 
 void setup () {
     Serial.begin(9600);
@@ -39,10 +41,8 @@ void setup () {
     pinMode(lowWaterLED, OUTPUT); //LED warning of low water 
     pinMode(lowLED, OUTPUT); //Plant1 low moisture alert (Red)
     pinMode(highLED, OUTPUT); //Plant1 good moisture alert (Green)
+    //pinMode(A0, INPUT); //Moisture sensor
     for(int i=0;i<pumpNum;i++){
-      String startIt = "Pump "+ i;
-      String finishIt = startIt + " on pin "+pump[i];
-      Serial.println(finishIt);
       pinMode(pump[i], OUTPUT); //Motor pin
     }
     lcd.begin(16,2); //Begin LCD Display
@@ -55,6 +55,7 @@ void setup () {
 }
  
 void loop () {
+    lcd.clear();
     checkLevel();
 }
 
@@ -79,6 +80,7 @@ void checkLevel(){
 }
 
 void emptyNotify(){      //Notify when water level is low
+  lcd.display();
   lcd.setCursor(0,0);
   lcd.print("Water Level Low.");
   lcd.setCursor(0,1);
@@ -94,7 +96,7 @@ void emptyNotify(){      //Notify when water level is low
 void checkTime(){
     DateTime now = RTC.now();      //Get date and time from when sketch was compiled
  
-    Serial.print(now.year(), DEC);
+  /*  Serial.print(now.year(), DEC);
     Serial.print('/');
     Serial.print(now.month(), DEC);
     Serial.print('/');
@@ -106,7 +108,7 @@ void checkTime(){
     Serial.print(':');
     Serial.print(now.second(), DEC);
     Serial.println();                // Print out the time to serial monitor
-    
+    */
       if ((now.hour() == 8) && (now.minute() == 0)){ // First check at 08:00 A.M.
           executeAll();
       }
@@ -117,17 +119,14 @@ void checkTime(){
 
 int checkMoisture(int pNum){
   int moist = 0;
-  int sensorRead = analogRead(pNum);
-  Serial.print("Plant Num: "+ pNum);
-  moist = map(sensorRead,1023,0,0,100); //Map readings from 0 - 100
+  sensorRead = analogRead(pNum);
+  moist = map(sensorRead,1022,22,0,100); //Map readings from 0 - 100
   constrain(moist,0,100);    //Constrain readings from 0 - 100
-  String data = " Moisture At: " + moist;
-  String quantifier = data + "%.";
-  Serial.println(quantifier);       //Print out the moisture level to Serial Monitor
   return moist;
 }
 
 void printLCD(int pNum){
+    lcd.display();
     moisture = checkMoisture(pNum);
     lcd.setCursor(2,0);  //First line of LCD
     lcd.print(plantNames[pNum]); //Print name of current plant
@@ -174,8 +173,6 @@ void executeAll(){         //Perform all tasks
       for(pNum=0;pNum<(plantNum);pNum++){
          printLCD(pNum);      //Print plant name and moisture level
          moistEval(pNum);     //Pump water based on moisture
-         delay(1000);
-         lcd.clear();
          
       }
     interruptIt = 0;  //Deactivate the interrupt variable
