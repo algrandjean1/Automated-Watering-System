@@ -1,8 +1,8 @@
 /* Title: AUTOMATED WATERING SYSTEM
    Engineer: Alain Grandjean
    Date Created: 1-10-15
-   Date Last Modified: 1-15-15
-   Version: 3   
+   Date Last Modified: 2-22-15
+   Version: 4   
 
 Description: Watering system for 1 - 3 motor(s).
 Scalable to larger size if Arduino with more pins and better processor
@@ -15,8 +15,8 @@ and a bigger motor driver is used. An external power source is also recommended.
 #define plantNum 1   //Total number of plants (edit as needed)
 #define pumpNum 1   //Total number of pumps (up to 3)
 
-#define lowLED 5    //Pin for yellow LED
 #define highLED 6   //Pin for green LED
+#define lowLED 5    //Pin for yellow LED
 #define lowWaterLED 4  //Pin for red low water LED
 #define waterLevel 3 //Pin for water level sensor probe
  
@@ -127,6 +127,7 @@ int checkMoisture(int pNum){
 
 void printLCD(int pNum){
     lcd.display();
+    lcd.clear();
     moisture = checkMoisture(pNum);
     lcd.setCursor(2,0);  //First line of LCD
     lcd.print(plantNames[pNum]); //Print name of current plant
